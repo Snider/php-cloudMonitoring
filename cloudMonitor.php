@@ -264,6 +264,14 @@ class cloudMonitor
             return $this->makeApiCall("/entities/$entity_id/alarms/$alarm_id/notification_history/$check_id/$uuid");
         }
 
+    public function get_notification_plan($plan_id = false){
+            if(!$plan_id ){
+                return false;
+            }
+
+            return $this->makeApiCall("/notification_plans/$plan_id");
+        }
+
     /**
      * @return array|null
      */
@@ -322,6 +330,14 @@ class cloudMonitor
     public function list_check_types()
     {
         return $this->makeApiCall('/check_types');
+    }
+
+    /**
+     * @return array|null
+     */
+    public function list_notification_plans()
+    {
+        return $this->makeApiCall('	/notification_plans');
     }
 
     /**
@@ -450,6 +466,28 @@ class cloudMonitor
     }
 
     /**
+     * @param bool $plan_id
+     * @param array $options
+     * @return array|bool|null
+     */
+    public function update_notification_plan($plan_id = false, $options = array())
+    {
+
+
+        if (empty($options)) {
+            return false;
+        }
+
+        $ret = $this->makeApiCall("/notification_plans/$plan_id", $options, 'PUT');
+
+        if ($this->callFailed()) {
+            return false;
+        }
+
+        return $ret;
+    }
+
+    /**
      * @param bool $label
      * @param bool $agent_id
      * @param bool $ip_addresses
@@ -546,6 +584,33 @@ class cloudMonitor
 
     }
 
+    /**
+     * @param bool $label
+     * @param array $options
+     * @return array|bool|null
+     */
+    public function create_notification_plan($label = false, $options = array())
+    {
+        if (!$label) {
+            return false;
+        }
+
+
+        if (empty($options)) {
+            return false;
+        }
+
+
+        $ret = $this->makeApiCall("/notification_plans", $options, 'POST');
+
+        if ($this->callFailed()) {
+            return false;
+        }
+
+        return $ret;
+
+    }
+
 
     /**
      * @param bool   $entity_id
@@ -583,7 +648,7 @@ class cloudMonitor
      */
     public function delete_entity($entity_id = false)
     {
-        if (!$entity_id == false) {
+        if (!$entity_id) {
             return false;
         }
 
@@ -604,7 +669,7 @@ class cloudMonitor
      */
     public function delete_check($entity_id = false, $check_id = false)
     {
-        if (!$entity_id == false || $check_id == false) {
+        if (!$entity_id  || !$check_id) {
             return false;
         }
 
@@ -625,11 +690,26 @@ class cloudMonitor
      */
     public function delete_alarm($entity_id = false, $alarm_id = false)
     {
-        if (!$entity_id == false || $alarm_id == false) {
+        if (!$entity_id || !$alarm_id) {
             return false;
         }
 
         $this->makeApiCall("/entities/$entity_id/alarms/$alarm_id", false, 'DELETE');
+
+        if ($this->callFailed()) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public function delete_plan($plan_id = false)
+    {
+        if (!$plan_id) {
+            return false;
+        }
+
+        $this->makeApiCall("/notification_plans/$plan_id", false, 'DELETE');
 
         if ($this->callFailed()) {
             return false;
