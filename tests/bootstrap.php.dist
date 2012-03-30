@@ -1,0 +1,5 @@
+<?php
+// user
+define('API_USER', 'test');
+// pass
+define('API_PASS', 'add-your-api-key');

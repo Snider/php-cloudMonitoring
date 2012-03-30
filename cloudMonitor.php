@@ -100,7 +100,7 @@ class cloudMonitor
      *
      * @var string
      */
-    const UK_MONITOR_ENDPOINT = 'https://lon.dns.api.rackspacecloud.com';
+    const UK_MONITOR_ENDPOINT = 'https://lon.monitoring.api.rackspacecloud.com';
 
     /**
      *
@@ -108,7 +108,7 @@ class cloudMonitor
      *
      * @var string
      */
-    const US_MONITOR_ENDPOINT = 'https://dns.api.rackspacecloud.com';
+    const US_MONITOR_ENDPOINT = 'https://monitoring.api.rackspacecloud.com';
 
     /**
      * Creates a new Rackspace Cloud Servers API object to make calls with
@@ -128,7 +128,7 @@ class cloudMonitor
      * @param string $key  The API key to use
      * @param string $endpoint
      */
-    public function __construct($user, $key, $endpoint = 'UK')
+    public function __construct($user, $key, $endpoint = 'US')
     {
         $this->authUser = $user;
         $this->authKey = $key;
@@ -138,37 +138,16 @@ class cloudMonitor
     }
 
 
+    public function limits(){
 
-    /**
-     *
-     * list domain data by domainID ...
-     * List details for a specific domain, using the showRecords and showSubdomains parameters that specify
-     * whether to request information for records and subdomains.
-     *
-     * @param bool|int $domainID
-     * @param bool     $showRecords
-     * @param bool     $showSubdomains
-     *
-     * @param int      $limit
-     * @param int      $offset
-     *
-     * @return array|bool
-     */
-    public function list_domain_details(
-        $domainID = false, $showRecords = false, $showSubdomains = false, $limit = 100, $offset = 0
-    )
-    {
-        if ($domainID == false || !is_numeric($domainID)) {
-            return false;
-        }
 
-        $showRecords = ($showRecords == false) ? 'false' : 'true';
-        $showRecords = ($showSubdomains == false) ? 'false' : 'true';
-
-        $url = "/domains/$domainID?showRecords=$showRecords&showSubdomains=$showSubdomains&limit=$limit&offset=$offset";
+        $url = "/limits";
 
         return $this->makeApiCall($url);
     }
+
+
+
 
     /**
      * exports a domain as a BIND9 format ...
@@ -214,17 +193,15 @@ class cloudMonitor
      *
      * @return boolean|Ambigous <multitype:, NULL, mixed>
      */
-    public function create_domain_record($domainID = false, $records = false, $showDetails = true)
+    public function sample_async()
     {
-        if (!$domainID || !is_array($records)) {
-            return false;
-        }
+
 
         $postData = array(
             'records' => $records
         );
 
-        $url = "/domains/$domainID/records";
+        $url = "/domains";
 
         $call = $this->makeApiCall($url, $postData, 'POST');
 
@@ -237,7 +214,6 @@ class cloudMonitor
 
             $url = explode('status', $call ['callbackUrl']);
             $url = array_pop($url);
-            $url .= $showDetails == true ? '?showDetails=true' : '';
 
             $call = $this->makeApiCall('/status' . $url);
 
@@ -276,13 +252,8 @@ class cloudMonitor
 
         $this->lastResponseStatus = NULL;
 
-        $urlParts = explode('?', $url);
 
-        $url = $urlParts [0] . ".json";
 
-        if (isset ($urlParts [1])) {
-            $url .= '?' . $urlParts [1];
-        }
 
         $jsonUrl
             = $this->apiEndpoint . '/' . rawurlencode("v" . self::DEFAULT_MONITOR_API_VERSION) . '/' . $this->account_id
@@ -294,9 +265,10 @@ class cloudMonitor
 
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $jsonUrl);
+        $httpHeaders [] = "Content-Type: application/json";
         if ($postData) {
             curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postData));
-            $httpHeaders [] = "Content-Type: application/json";
+
         }
         if ($method) {
             curl_setopt($ch, CURLOPT_CUSTOMREQUEST, strtoupper($method));
@@ -319,6 +291,7 @@ class cloudMonitor
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
         $jsonResponse = curl_exec($ch);
+
         curl_close($ch);
 
         return json_decode($jsonResponse, true);
@@ -350,7 +323,7 @@ class cloudMonitor
      * @return boolean TRUE if authentication is complete, FALSE if it needs to
      * be done
      */
-    private function isAuthenticated()
+    public function isAuthenticated()
     {
         return ($this->serverUrl && $this->authToken);
     }
@@ -360,7 +333,7 @@ class cloudMonitor
      *
      * @return boolean TRUE if the authentication was successful
      */
-    private function authenticate()
+    public function authenticate()
     {
         $authHeaders = array(
             "X-Auth-User: {$this->authUser}",
@@ -401,11 +374,11 @@ class cloudMonitor
                 preg_match("/X-Auth-Token: (.*)/", $response, $matches);
                 $this->authToken = trim($matches [1]);
 
-                return TRUE;
+                return true;
             }
         }
 
-        return FALSE;
+        return false;
     }
 
     /**
