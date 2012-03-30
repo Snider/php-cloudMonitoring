@@ -207,10 +207,12 @@ class cloudMonitor
 
     /**
      * @param bool $type
+     *
      * @return array|bool|null
      */
-    public function get_check_type($type = false){
-        if(!array_key_exists($type,$this->check_types)){
+    public function get_check_type($type = false)
+    {
+        if (!array_key_exists($type, $this->check_types)) {
             return false;
         }
 
@@ -219,14 +221,31 @@ class cloudMonitor
 
     /**
      * @param bool $zone_id
+     *
      * @return array|bool|null
      */
-    public function get_zone($zone_id = false){
-        if(!$zone_id){
+    public function get_zone($zone_id = false)
+    {
+        if (!$zone_id) {
             return false;
         }
 
         return $this->makeApiCall("/monitoring_zones/$zone_id");
+
+    }
+
+    /**
+     * @param bool $entity_id
+     * @param bool $alarm_id
+     * @return array|bool|null
+     */
+    public function get_alarm($entity_id = false, $alarm_id = false)
+    {
+        if (!$entity_id || !$alarm_id) {
+            return false;
+        }
+
+        return $this->makeApiCall("/entities/$entity_id/alarms/$alarm_id");
 
     }
 
@@ -249,14 +268,16 @@ class cloudMonitor
     /**
      * @return array|null
      */
-    public function list_zones(){
+    public function list_zones()
+    {
         return $this->makeApiCall("/monitoring_zones");
     }
 
-/**
- * @param bool $entity_id
- * @return array|bool|null
- */
+    /**
+     * @param bool $entity_id
+     *
+     * @return array|bool|null
+     */
     public function list_checks($entity_id = false)
     {
         if (!$entity_id) {
@@ -267,14 +288,31 @@ class cloudMonitor
     }
 
     /**
+     * @param bool $entity_id
+     *
+     * @return array|bool|null
+     */
+    public function list_alarms($entity_id = false)
+    {
+        if (!$entity_id) {
+            return false;
+        }
+
+        return $this->makeApiCall("/entities/$entity_id/alarms");
+    }
+
+    /**
      * @return array|null
      */
-    public function list_check_types(){
+    public function list_check_types()
+    {
         return $this->makeApiCall('/check_types');
     }
+
     /**
      * @param bool  $entity_id
      * @param array $updates
+     *
      * @return bool
      */
     public function update_entity($entity_id = false, $updates = array())
@@ -292,13 +330,15 @@ class cloudMonitor
 
         return true;
     }
-/**
- * @param bool $entity_id
- * @param bool $check_id
- * @param array $updates
- * @return bool
- */
-    public function update_check($entity_id = false,$check_id = false, $updates = array())
+
+    /**
+     * @param bool  $entity_id
+     * @param bool  $check_id
+     * @param array $updates
+     *
+     * @return bool
+     */
+    public function update_check($entity_id = false, $check_id = false, $updates = array())
     {
 
         if (!$entity_id || !$check_id || empty($updates)) {
@@ -306,6 +346,28 @@ class cloudMonitor
         }
 
         $this->makeApiCall("/entities/$entity_id/checks/$check_id", $updates, 'PUT');
+
+        if ($this->callFailed()) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @param bool $entity_id
+     * @param bool $alarm_id
+     * @param array $updates
+     * @return bool
+     */
+    public function update_alarm($entity_id = false, $alarm_id = false, $updates = array())
+    {
+
+        if (!$entity_id || !$alarm_id || empty($updates)) {
+            return false;
+        }
+
+        $this->makeApiCall("/entities/$entity_id/alarms/$alarm_id", $updates, 'PUT');
 
         if ($this->callFailed()) {
             return false;
@@ -411,6 +473,37 @@ class cloudMonitor
 
     }
 
+    /**
+     * @param bool  $entity_id
+     * @param array $options
+     *
+     * @return array|bool|null
+     */
+    public function create_alarm($entity_id = false, $options = array())
+    {
+        if (!$entity_id) {
+            return false;
+        }
+
+        if (isset($options['check_type']) && !in_array($options['check_type'], $this->check_types)) {
+
+        }
+
+        if (empty($options)) {
+            return false;
+        }
+
+
+        $ret = $this->makeApiCall("/entities/$entity_id/alarms", $options, 'POST');
+
+        if ($this->callFailed()) {
+            return false;
+        }
+
+        return $ret;
+
+    }
+
 
     /**
      * @param bool   $entity_id
@@ -429,7 +522,21 @@ class cloudMonitor
 
     /**
      * @param bool $entity_id
-    *
+     *
+     * @return array|bool|null
+     */
+    public function test_alarm($entity_id = false)
+    {
+        if (!$entity_id) {
+            return false;
+        }
+
+        return $this->makeApiCall("/entities/$entity_id/test-alarm");
+    }
+
+    /**
+     * @param bool $entity_id
+     *
      * @return bool
      */
     public function delete_entity($entity_id = false)
@@ -450,6 +557,7 @@ class cloudMonitor
     /**
      * @param bool $entity_id
      * @param bool $check_id
+     *
      * @return bool
      */
     public function delete_check($entity_id = false, $check_id = false)
@@ -459,6 +567,27 @@ class cloudMonitor
         }
 
         $this->makeApiCall("/entities/$entity_id/checks/$check_id", false, 'DELETE');
+
+        if ($this->callFailed()) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @param bool $entity_id
+     * @param bool $alarm_id
+     *
+     * @return bool
+     */
+    public function delete_alarm($entity_id = false, $alarm_id = false)
+    {
+        if (!$entity_id == false || $alarm_id == false) {
+            return false;
+        }
+
+        $this->makeApiCall("/entities/$entity_id/alarms/$alarm_id", false, 'DELETE');
 
         if ($this->callFailed()) {
             return false;
