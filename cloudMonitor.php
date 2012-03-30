@@ -250,6 +250,21 @@ class cloudMonitor
     }
 
     /**
+     * @param bool $entity_id
+     * @param bool $alarm_id
+     * @param bool $check_id
+     * @param bool $uuid
+     * @return array|bool|null
+     */
+    public function get_alarm_notification_history($entity_id = false, $alarm_id = false, $check_id = false, $uuid = false){
+            if(!$entity_id || !$alarm_id || $check_id || !$uuid){
+                return false;
+            }
+
+            return $this->makeApiCall("/entities/$entity_id/alarms/$alarm_id/notification_history/$check_id/$uuid");
+        }
+
+    /**
      * @return array|null
      */
     public function list_audits()
@@ -307,6 +322,33 @@ class cloudMonitor
     public function list_check_types()
     {
         return $this->makeApiCall('/check_types');
+    }
+
+    /**
+     * @param bool $entity_id
+     * @param bool $alarm_id
+     * @param bool $check_id
+     * @return array|bool|null
+     */
+    public function list_alarm_notification_history($entity_id = false, $alarm_id = false, $check_id = false){
+        if(!$entity_id || !$alarm_id || $check_id){
+            return false;
+        }
+
+        return $this->makeApiCall("/entities/$entity_id/alarms/$alarm_id/notification_history/$check_id");
+    }
+
+    /**
+     * @param bool $entity_id
+     * @param bool $alarm_id
+     * @return array|bool|null
+     */
+    public function discover_alarm_notification_history($entity_id = false, $alarm_id = false){
+        if(!$entity_id || !$alarm_id){
+            return false;
+        }
+
+        return $this->makeApiCall("/entities/$entity_id/alarms/$alarm_id/notification_history");
     }
 
     /**
