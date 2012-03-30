@@ -206,6 +206,18 @@ class cloudMonitor
     }
 
     /**
+     * @param bool $type
+     * @return array|bool|null
+     */
+    public function get_check_type($type = false){
+        if(!array_key_exists($type,$this->check_types)){
+            return false;
+        }
+
+        return $this->makeApiCall("/check_types/{$this->check_types[$type]}");
+    }
+
+    /**
      * @return array|null
      */
     public function list_audits()
@@ -221,7 +233,10 @@ class cloudMonitor
         return $this->makeApiCall("/entities");
     }
 
-
+/**
+ * @param bool $entity_id
+ * @return array|bool|null
+ */
     public function list_checks($entity_id = false)
     {
         if (!$entity_id) {
@@ -231,6 +246,12 @@ class cloudMonitor
         return $this->makeApiCall("/entities/$entity_id/checks");
     }
 
+    /**
+     * @return array|null
+     */
+    public function list_check_types(){
+        return $this->makeApiCall('/check_types');
+    }
     /**
      * @param bool  $entity_id
      * @param array $updates
@@ -251,7 +272,12 @@ class cloudMonitor
 
         return true;
     }
-
+/**
+ * @param bool $entity_id
+ * @param bool $check_id
+ * @param array $updates
+ * @return bool
+ */
     public function update_check($entity_id = false,$check_id = false, $updates = array())
     {
 
@@ -401,6 +427,11 @@ class cloudMonitor
         return true;
     }
 
+    /**
+     * @param bool $entity_id
+     * @param bool $check_id
+     * @return bool
+     */
     public function delete_check($entity_id = false, $check_id = false)
     {
         if (!$entity_id == false || $check_id == false) {
