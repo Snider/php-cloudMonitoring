@@ -218,6 +218,19 @@ class cloudMonitor
     }
 
     /**
+     * @param bool $zone_id
+     * @return array|bool|null
+     */
+    public function get_zone($zone_id = false){
+        if(!$zone_id){
+            return false;
+        }
+
+        return $this->makeApiCall("/monitoring_zones/$zone_id");
+
+    }
+
+    /**
      * @return array|null
      */
     public function list_audits()
@@ -231,6 +244,13 @@ class cloudMonitor
     public function list_entities()
     {
         return $this->makeApiCall("/entities");
+    }
+
+    /**
+     * @return array|null
+     */
+    public function list_zones(){
+        return $this->makeApiCall("/monitoring_zones");
     }
 
 /**
