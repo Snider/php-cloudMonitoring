@@ -29,7 +29,7 @@
  * @contributor Alon Ben David @ CoolGeex.com
  * @contributor zeut @ GitHub - reported a fix for limiting... totally forgot that bit!
  * @contributor idfbobby @ github - updated the create_domain() function to include comments and ttl
- */ 
+ */
 
 class cloudMonitor
 {
@@ -138,16 +138,45 @@ class cloudMonitor
     }
 
 
-    public function limits(){
+    /**
+     * does a api call to get the account api limits
+     *
+     * @return array|null
+     */
+    public function get_limits()
+    {
+        return $this->makeApiCall("/limits");
+    }
 
 
-        $url = "/limits";
+    /**
+     * does a get_account api call
+     * @return array|null
+     */
+    public function get_account()
+    {
 
-        return $this->makeApiCall($url);
+        return $this->makeApiCall("/account");
     }
 
 
 
+
+    public function update_account($webhook_token = false, $metadata = false){
+
+        $update = array();
+        if($webhook_token){
+            $update['metadata'] = $metadata;
+        }
+
+        if($metadata){
+            $update['metadata'] = $metadata;
+        }
+
+        if(empty($update)){ return false;}
+
+        return $this->makeApiCall("account",$update, 'PUT');
+}
 
     /**
      * exports a domain as a BIND9 format ...
@@ -178,10 +207,6 @@ class cloudMonitor
         }
         return $call;
     }
-
-
-
-
 
 
     /**
@@ -222,8 +247,6 @@ class cloudMonitor
     }
 
 
-
-
     public function set_cabundle($path = null)
     {
 
@@ -239,7 +262,7 @@ class cloudMonitor
      * @param string $postData (Optional) The JSON string to send
      * @param string $method   (Optional) The HTTP method to use
      *
-     * @return string The Jsonparsed response, or NULL if there was an error
+     * @return array|null The Jsonparsed response, or NULL if there was an error
      */
     private function makeApiCall($url, $postData = NULL, $method = NULL)
     {
@@ -251,8 +274,6 @@ class cloudMonitor
         }
 
         $this->lastResponseStatus = NULL;
-
-
 
 
         $jsonUrl
@@ -345,9 +366,9 @@ class cloudMonitor
 
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, True);
         if (!is_null($this->cacert)) {
-                    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
-                    curl_setopt($ch, CURLOPT_CAINFO, dirname(dirname(__FILE__)) . "/share/cacert.pem");
-                }
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+            curl_setopt($ch, CURLOPT_CAINFO, dirname(dirname(__FILE__)) . "/share/cacert.pem");
+        }
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
         curl_setopt($ch, CURLOPT_MAXREDIRS, 4);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $authHeaders);

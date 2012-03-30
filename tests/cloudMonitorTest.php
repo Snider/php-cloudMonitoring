@@ -41,7 +41,7 @@ class cloudMonitorTest extends PHPUnit_Framework_TestCase
      * @covers cloudMonitor::limits
      */
     public function testLimits(){
-        $this->assertTrue(is_array($this->object->limits()), 'test the limits call returns an array');
+        $this->assertTrue(is_array($this->object->get_limits()), 'test the limits call returns an array');
     }
 
     /**
@@ -62,7 +62,7 @@ class cloudMonitorTest extends PHPUnit_Framework_TestCase
      */
     public function testGetLastResponseMessage()
     {
-       $this->assertTrue(is_array($this->object->limits()), 'test the limits call returns an array');
+       $this->assertTrue(is_array($this->object->get_limits()), 'test the limits call returns an array');
        $this->assertTrue($this->object->getLastResponseMessage() == 'Successful informational response', 'test the limits call returns an array');
 
 
@@ -74,7 +74,7 @@ class cloudMonitorTest extends PHPUnit_Framework_TestCase
      */
     public function testGetLastResponseStatus()
     {
-        $this->assertTrue(is_array($this->object->limits()), 'do a call to limits to as this is likly to return a 200');
+        $this->assertTrue(is_array($this->object->get_limits()), 'do a call to limits to as this is likly to return a 200');
         $this->assertTrue($this->object->getLastResponseStatus() == 200, 'test the limits call returns an array');
 
     }
