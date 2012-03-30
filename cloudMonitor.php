@@ -44,6 +44,24 @@ class cloudMonitor
     private $lastResponseStatus;
     private $callbacks = array();
 
+    private $check_types
+        = array(
+            'dns'        => 'remote.dns',
+            'ftp'        => 'remote.ftp-banner',
+            'imap'       => 'remote.imap-banner',
+            'pop3'       => 'remote.pop3-banner',
+            'smtp'       => 'remote.smtp-banner',
+            'postgresql' => 'remote.postgresql-banner',
+            'telnet'     => 'remote.telnet-banner',
+            'mysql'      => 'remote.mysql-banner',
+            'mssql'      => 'remote.mssql-banner',
+            'ssh'        => 'remote.ssh',
+            'smtp'       => 'remote.smtp',
+            'http'       => 'remote.http',
+            'tcp'        => 'remote.tcp',
+            'ping'       => 'remote.ping'
+        );
+
     private $cacert = null;
 
     /**
@@ -119,10 +137,6 @@ class cloudMonitor
      * Authentication is done automatically when making the first API call
      * using this object.
      *
-     * @todo add a callback function so if one wanted they could call back minutes or
-     *       hours later as result is saved for 24 hours... could internally use it with an
-     *       option to just return the callback url for the programmer to use later
-     *
      *
      * @param string $user The username of the account to use
      * @param string $key  The API key to use
@@ -160,30 +174,76 @@ class cloudMonitor
         return $this->makeApiCall("/account");
     }
 
-    public function get_audits(){
+    /**
+     * @param bool $entity_id
+     *
+     *
+     * @return array|bool|null
+     */
+    public function get_entity($entity_id = false)
+    {
+        if (!$entity_id || !is_numeric($entity_id)) {
+            return false;
+        }
+
+        return $this->makeApiCall("/entities/$entity_id");
+    }
+
+    /**
+     * @param bool $entity_id
+     * @param bool $check_id
+     *
+     * @return array|bool|null
+     */
+    public function get_check($entity_id = false, $check_id = false)
+    {
+        if (!$entity_id || !$check_id) {
+            return false;
+        }
+        return $this->makeApiCall("/entities/$entity_id/checks/$check_id");
+
+
+    }
+
+    /**
+     * @return array|null
+     */
+    public function list_audits()
+    {
         return $this->makeApiCall("/audits");
     }
 
-    public function get_entities(){
+    /**
+     * @return array|null
+     */
+    public function list_entities()
+    {
         return $this->makeApiCall("/entities");
     }
 
-    public function get_entity($id = false){
-        if(!$id || !is_numeric($id)){
+
+    public function list_checks($entity_id = false)
+    {
+        if (!$entity_id) {
             return false;
         }
 
-        return $this->makeApiCall("/entities/$id");
+        return $this->makeApiCall("/entities/$entity_id/checks");
     }
 
+    /**
+     * @param bool  $entity_id
+     * @param array $updates
+     * @return bool
+     */
+    public function update_entity($entity_id = false, $updates = array())
+    {
 
-    public function update_entity($id = false, $updates = array()){
-
-        if(!$id || empty($updates)){
+        if (!$entity_id || empty($updates)) {
             return false;
         }
 
-        $this->makeApiCall("/entities/$id", $updates, 'PUT');
+        $this->makeApiCall("/entities/$entity_id", $updates, 'PUT');
 
         if ($this->callFailed()) {
             return false;
@@ -191,6 +251,23 @@ class cloudMonitor
 
         return true;
     }
+
+    public function update_check($entity_id = false,$check_id = false, $updates = array())
+    {
+
+        if (!$entity_id || !$check_id || empty($updates)) {
+            return false;
+        }
+
+        $this->makeApiCall("/entities/$entity_id/checks/$check_id", $updates, 'PUT');
+
+        if ($this->callFailed()) {
+            return false;
+        }
+
+        return true;
+    }
+
     /**
      * @param bool $webhook_token
      * @param bool $metadata
@@ -222,26 +299,33 @@ class cloudMonitor
         return $ret;
     }
 
-
-
-    public function create_entity($label = false, $agent_id = false, $ip_addresses = false, $metadata = false){
-        if(!$label){
+    /**
+     * @param bool $label
+     * @param bool $agent_id
+     * @param bool $ip_addresses
+     * @param bool $metadata
+     *
+     * @return array|bool|null
+     */
+    public function create_entity($label = false, $agent_id = false, $ip_addresses = false, $metadata = false)
+    {
+        if (!$label) {
             return false;
         }
         $insert = array();
 
-        if($agent_id){
+        if ($agent_id) {
             $insert['agent_id'] = $agent_id;
         }
 
-        if($ip_addresses){
+        if ($ip_addresses) {
             $insert['ip_addresses'] = $ip_addresses;
         }
 
-        if($metadata){
+        if ($metadata) {
             $insert['metadata'] = $metadata;
         }
-           $ret = $this->makeApiCall("/entities", $insert, 'POST');
+        $ret = $this->makeApiCall("/entities", $insert, 'POST');
 
         if ($this->callFailed()) {
             return false;
@@ -253,12 +337,77 @@ class cloudMonitor
     }
 
 
-    public function delete_entity($id = false){
-        if(!$id == false){
+    /**
+     * @param bool  $entity_id
+     * @param bool  $type
+     * @param array $options details|disabled|label|monitoring_zones_poll|period|target_alias|target_hostname|target_resolver|timeout
+     *
+     * @return array|bool|null
+     */
+    public function create_check($entity_id = false, $type = false, $options = array())
+    {
+        if (!$entity_id || !$type || !in_array($type, $this->check_types)) {
             return false;
         }
 
-         $this->makeApiCall("/entities/$id",false, 'DELETE');
+        if (empty($options)) {
+            return false;
+        }
+
+
+        $ret = $this->makeApiCall("/entities/$entity_id/checks", $options, 'POST');
+
+        if ($this->callFailed()) {
+            return false;
+        }
+
+        return $ret;
+
+    }
+
+
+    /**
+     * @param bool   $entity_id
+     * @param string $debug
+     *
+     * @return array|null
+     */
+    public function test_check($entity_id = false, $debug = '')
+    {
+        if ($debug != '') {
+            $debug = "?debug=true";
+        }
+
+        return $this->makeApiCall("/entities/$entity_id/test-check$debug");
+    }
+
+    /**
+     * @param bool $entity_id
+    *
+     * @return bool
+     */
+    public function delete_entity($entity_id = false)
+    {
+        if (!$entity_id == false) {
+            return false;
+        }
+
+        $this->makeApiCall("/entities/$entity_id", false, 'DELETE');
+
+        if ($this->callFailed()) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public function delete_check($entity_id = false, $check_id = false)
+    {
+        if (!$entity_id == false || $check_id == false) {
+            return false;
+        }
+
+        $this->makeApiCall("/entities/$entity_id/checks/$check_id", false, 'DELETE');
 
         if ($this->callFailed()) {
             return false;
@@ -300,43 +449,8 @@ class cloudMonitor
 
 
     /**
-     * creates a new record on a existing zone ...
-     *
-     * @param bool|int           $domainID
-     * @param bool               $records
-     * @param bool               $showDetails
-     *
-     * @return boolean|Ambigous <multitype:, NULL, mixed>
+     * @param string $path
      */
-    public function sample_async()
-    {
-
-
-        $postData = array(
-            'records' => $records
-        );
-
-        $url = "/domains";
-
-        $call = $this->makeApiCall($url, $postData, 'POST');
-
-        //@todo make callback function to cycle through registered call backs
-        $timeout = time() + self::TIMEOUT;
-
-        while ($call ['status'] == 'RUNNING' && $timeout > time()) {
-            $this->callbacks [] = $call;
-            usleep(self::SLEEPTIME);
-
-            $url = explode('status', $call ['callbackUrl']);
-            $url = array_pop($url);
-
-            $call = $this->makeApiCall('/status' . $url);
-
-        }
-        return $call;
-    }
-
-
     public function set_cabundle($path = null)
     {
 
@@ -557,3 +671,32 @@ class cloudMonitor
     }
 
 }
+
+
+
+/*   public function sample_async()
+   {
+
+
+       $postData = array(
+           'records' => $records
+       );
+
+       $url = "/domains";
+
+       $call = $this->makeApiCall($url, $postData, 'POST');
+
+       $timeout = time() + self::TIMEOUT;
+
+       while ($call ['status'] == 'RUNNING' && $timeout > time()) {
+           $this->callbacks [] = $call;
+           usleep(self::SLEEPTIME);
+
+           $url = explode('status', $call ['callbackUrl']);
+           $url = array_pop($url);
+
+           $call = $this->makeApiCall('/status' . $url);
+
+       }
+       return $call;
+   }*/
