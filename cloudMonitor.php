@@ -1,12 +1,10 @@
 <?php
 /**
- * NOTE: THE API OF THE create_domain() FUNCTION HAS BEEN UPDATED AND YOU WILL NEED TO UPDATE ITS USE IN YOUR CODE
  *
- *
- * Rackspace DNS PHP API ...
+ * Rackspace Cloud Monitoring PHP API ...
  *
  * This PHP Libary is supported by Original Webware Limited
- *  please register any issues to: https://github.com/snider/php-cloudDNS/issues/
+ *  please register any issues to: https://github.com/snider/php-cloudMonitoring/issues/
  *
  * Copyright (C) 2011  Original Webware Limited
  *
@@ -25,10 +23,6 @@
  *
  *
  * @author      Paul Lashbrook - OriginalWebware.com
- *
- * @contributor Alon Ben David @ CoolGeex.com
- * @contributor zeut @ GitHub - reported a fix for limiting... totally forgot that bit!
- * @contributor idfbobby @ github - updated the create_domain() function to include comments and ttl
  */
 
 class cloudMonitor

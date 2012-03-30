@@ -1,12 +1,16 @@
-Hiya,
+This is the PHP binding to the Rackspace Cloud Monitoring API
 
-if your reading me then you got here darn quick.... check back in a few hours and thou shall get the worm
+http://www.rackspace.com/cloud/cloud_hosting_products/monitoring
 
-......
+at the moment it has had one sitting of programming generally Friday afternoons is do what you want time...
+litrally... games, code... whatever... so non important bug fixes would get done on fridays or before if i get board for
+a few minutes.
 
+This PHP Libary is supported by Original Webware Limited
+Please report any issue or idea to the bug tracker here:
 
-so far i have got the api working and in the next hour or so all the functions will be defined with unit tests to make sure the functions pass.
+https://github.com/snider/php-cloudMonitoring/issues
 
-then im going to make use of the lib in my app and update the lib acordingly...
+We also make the PHP Cloud DNS api and respond quick to peoples ideas, code patches etc so please get in touch with ideas... it helps!
 
-and im saying thsi here incase anyone finds this work in progress and wants to help by making tests... :)
+this code is released under the
