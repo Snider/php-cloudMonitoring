@@ -34,16 +34,46 @@
 class cloudMonitor
 {
 
+    /**
+     * @var string
+     */
     private $apiEndpoint;
+    /**
+     * @var string
+     */
     private $authEndpoint;
+    /**
+     * @var string
+     */
     private $serverUrl;
+    /**
+     * @var string
+     */
     private $account_id;
+    /**
+     * @var null
+     */
     private $authToken;
+    /**
+     * @var string
+     */
     private $authUser;
+    /**
+     * @var string
+     */
     private $authKey;
+    /**
+     * @var int
+     */
     private $lastResponseStatus;
+    /**
+     * @var array
+     */
     private $callbacks = array();
 
+    /**
+     * @var array
+     */
     private $check_types
         = array(
             'dns'        => 'remote.dns',
@@ -62,6 +92,9 @@ class cloudMonitor
             'ping'       => 'remote.ping'
         );
 
+    /**
+     * @var null
+     */
     private $cacert = null;
 
     /**
@@ -291,6 +324,13 @@ class cloudMonitor
     /**
      * @return array|null
      */
+    public function get_overview(){
+        return $this->makeApiCall('/views/overview');
+    }
+
+    /**
+     * @return array|null
+     */
     public function list_audits()
     {
         return $this->makeApiCall("/audits");
@@ -338,6 +378,13 @@ class cloudMonitor
         }
 
         return $this->makeApiCall("/entities/$entity_id/alarms");
+    }
+
+    /**
+     * @return array|null
+     */
+    public function list_alarm_changelogs(){
+        return $this->makeApiCall("/changelogs/alarms");
     }
 
     /**
@@ -872,6 +919,10 @@ class cloudMonitor
         return true;
     }
 
+    /**
+     * @param bool $plan_id
+     * @return bool
+     */
     public function delete_plan($plan_id = false)
     {
         if (!$plan_id) {
@@ -1133,7 +1184,11 @@ class cloudMonitor
         return $this->lastResponseStatus;
     }
 
-    public function callFailed($statuses = array(400, 401, 403, 404, 500, 503))
+    /**
+     * @param array $statuses
+     *
+     * @return bool
+     */public function callFailed($statuses = array(400, 401, 403, 404, 500, 503))
     {
         if (in_array($this->getLastResponseStatus(), $statuses)) {
             return true;
