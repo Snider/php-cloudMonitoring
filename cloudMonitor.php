@@ -264,12 +264,28 @@ class cloudMonitor
             return $this->makeApiCall("/entities/$entity_id/alarms/$alarm_id/notification_history/$check_id/$uuid");
         }
 
+    /**
+     * @param bool $plan_id
+     * @return array|bool|null
+     */
     public function get_notification_plan($plan_id = false){
             if(!$plan_id ){
                 return false;
             }
 
             return $this->makeApiCall("/notification_plans/$plan_id");
+        }
+
+    /**
+     * @param bool $notification_id
+     * @return array|bool|null
+     */
+    public function get_notifications($notification_id = false){
+            if(!$notification_id ){
+                return false;
+            }
+
+            return $this->makeApiCall("/notifications/$notification_id");
         }
 
     /**
@@ -337,7 +353,36 @@ class cloudMonitor
      */
     public function list_notification_plans()
     {
-        return $this->makeApiCall('	/notification_plans');
+        return $this->makeApiCall('/notification_plans');
+    }
+
+    /**
+     * @return array|null
+     */
+    public function list_notification_types()
+    {
+        return $this->makeApiCall('/notification_types');
+    }
+
+    /**
+     * @param bool $notification_id
+     * @return array|bool|null
+     */
+    public function list_notification_type($notification_id = false)
+    {
+
+        if(!$notification_id){
+            return false;
+        }
+        return $this->makeApiCall("/notification_types/$notification_id");
+    }
+
+    /**
+     * @return array|null
+     */
+    public function list_notifications()
+    {
+        return $this->makeApiCall('	/notifications');
     }
 
     /**
@@ -488,6 +533,28 @@ class cloudMonitor
     }
 
     /**
+     * @param bool $notification_id
+     * @param array $options
+     * @return array|bool|null
+     */
+    public function update_notification($notification_id = false, $options = array())
+    {
+
+
+        if (empty($options)) {
+            return false;
+        }
+
+        $ret = $this->makeApiCall("/notifications/$notification_id", $options, 'PUT');
+
+        if ($this->callFailed()) {
+            return false;
+        }
+
+        return $ret;
+    }
+
+    /**
      * @param bool $label
      * @param bool $agent_id
      * @param bool $ip_addresses
@@ -611,6 +678,34 @@ class cloudMonitor
 
     }
 
+    /**
+     * @param bool $details
+     * @param bool $label
+     * @param bool $type
+     * @return array|bool|null
+     */
+    public function create_notification($details = false, $label = false, $type = false)
+    {
+        if (!$label || !$details || $type) {
+            return false;
+        }
+
+
+        if (empty($options)) {
+            return false;
+        }
+
+
+        $ret = $this->makeApiCall("/notifications", $options, 'POST');
+
+        if ($this->callFailed()) {
+            return false;
+        }
+
+        return $ret;
+
+    }
+
 
     /**
      * @param bool   $entity_id
@@ -641,6 +736,61 @@ class cloudMonitor
         return $this->makeApiCall("/entities/$entity_id/test-alarm");
     }
 
+
+    /**
+     * @param bool $details
+     * @param bool $label
+     * @param bool $type
+     * @return array|bool|null
+     */
+    public function test_notification($details = false, $label = false, $type = false)
+        {
+            if (!$label || !$details || $type) {
+                return false;
+            }
+
+
+            if (empty($options)) {
+                return false;
+            }
+
+
+            $ret = $this->makeApiCall("/test-notification", $options, 'POST');
+
+            if ($this->callFailed()) {
+                return false;
+            }
+
+            return $ret;
+
+    }
+
+    /**
+     * @param bool $notification_id
+     * @return array|bool|null
+     */
+    public function test_existing_notification($notification_id = false)
+        {
+            if (!$notification_id ) {
+                return false;
+            }
+
+
+            if (empty($options)) {
+                return false;
+            }
+
+
+            $ret = $this->makeApiCall("/notifications/$notification_id/test", $options, 'POST');
+
+            if ($this->callFailed()) {
+                return false;
+            }
+
+            return $ret;
+
+    }
+
     /**
      * @param bool $entity_id
      *
@@ -653,6 +803,25 @@ class cloudMonitor
         }
 
         $this->makeApiCall("/entities/$entity_id", false, 'DELETE');
+
+        if ($this->callFailed()) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @param bool $notification_id
+     * @return bool
+     */
+    public function delete_notifications($notification_id = false)
+    {
+        if (!$notification_id) {
+            return false;
+        }
+
+        $this->makeApiCall("/notifications/$notification_id", false, 'DELETE');
 
         if ($this->callFailed()) {
             return false;
@@ -975,30 +1144,3 @@ class cloudMonitor
 }
 
 
-
-/*   public function sample_async()
-   {
-
-
-       $postData = array(
-           'records' => $records
-       );
-
-       $url = "/domains";
-
-       $call = $this->makeApiCall($url, $postData, 'POST');
-
-       $timeout = time() + self::TIMEOUT;
-
-       while ($call ['status'] == 'RUNNING' && $timeout > time()) {
-           $this->callbacks [] = $call;
-           usleep(self::SLEEPTIME);
-
-           $url = explode('status', $call ['callbackUrl']);
-           $url = array_pop($url);
-
-           $call = $this->makeApiCall('/status' . $url);
-
-       }
-       return $call;
-   }*/
