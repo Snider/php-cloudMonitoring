@@ -151,6 +151,7 @@ class cloudMonitor
 
     /**
      * does a get_account api call
+     *
      * @return array|null
      */
     public function get_account()
@@ -159,24 +160,113 @@ class cloudMonitor
         return $this->makeApiCall("/account");
     }
 
+    public function get_audits(){
+        return $this->makeApiCall("/audits");
+    }
+
+    public function get_entities(){
+        return $this->makeApiCall("/entities");
+    }
+
+    public function get_entity($id = false){
+        if(!$id || !is_numeric($id)){
+            return false;
+        }
+
+        return $this->makeApiCall("/entities/$id");
+    }
 
 
+    public function update_entity($id = false, $updates = array()){
 
-    public function update_account($webhook_token = false, $metadata = false){
+        if(!$id || empty($updates)){
+            return false;
+        }
+
+        $this->makeApiCall("/entities/$id", $updates, 'PUT');
+
+        if ($this->callFailed()) {
+            return false;
+        }
+
+        return true;
+    }
+    /**
+     * @param bool $webhook_token
+     * @param bool $metadata
+     *
+     * @return array|bool|null
+     */
+    public function update_account($webhook_token = false, $metadata = false)
+    {
 
         $update = array();
-        if($webhook_token){
+        if ($webhook_token) {
             $update['metadata'] = $metadata;
+        }
+
+        if ($metadata) {
+            $update['metadata'] = $metadata;
+        }
+
+        if (empty($update)) {
+            return false;
+        }
+
+        $ret = $this->makeApiCall("/account", $update, 'PUT');
+
+        if ($this->callFailed()) {
+            return false;
+        }
+
+        return $ret;
+    }
+
+
+
+    public function create_entity($label = false, $agent_id = false, $ip_addresses = false, $metadata = false){
+        if(!$label){
+            return false;
+        }
+        $insert = array();
+
+        if($agent_id){
+            $insert['agent_id'] = $agent_id;
+        }
+
+        if($ip_addresses){
+            $insert['ip_addresses'] = $ip_addresses;
         }
 
         if($metadata){
-            $update['metadata'] = $metadata;
+            $insert['metadata'] = $metadata;
+        }
+           $ret = $this->makeApiCall("/entities", $insert, 'POST');
+
+        if ($this->callFailed()) {
+            return false;
         }
 
-        if(empty($update)){ return false;}
+        return $ret;
 
-        return $this->makeApiCall("account",$update, 'PUT');
-}
+
+    }
+
+
+    public function delete_entity($id = false){
+        if(!$id == false){
+            return false;
+        }
+
+         $this->makeApiCall("/entities/$id",false, 'DELETE');
+
+        if ($this->callFailed()) {
+            return false;
+        }
+
+        return true;
+    }
+
 
     /**
      * exports a domain as a BIND9 format ...
@@ -456,6 +546,14 @@ class cloudMonitor
     public function getLastResponseStatus()
     {
         return $this->lastResponseStatus;
+    }
+
+    public function callFailed($statuses = array(400, 401, 403, 404, 500, 503))
+    {
+        if (in_array($this->getLastResponseStatus(), $statuses)) {
+            return true;
+        }
+        return false;
     }
 
 }
